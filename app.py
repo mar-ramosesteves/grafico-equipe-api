@@ -9,6 +9,10 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["*"]}})
 
 matriz = pd.read_excel("TABELA_GERAL_ARQUETIPOS_COM_CHAVE.xlsx")
+print("🔍 Tamanho da matriz:", matriz.shape)
+print("🔍 Primeiras chaves:")
+print(matriz["CHAVE"].head(10).tolist())
+
 
 @app.route("/grafico", methods=["POST"])
 def gerar_grafico():
