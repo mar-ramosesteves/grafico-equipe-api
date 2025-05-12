@@ -1,4 +1,3 @@
-
 from flask import Flask, request, send_file, jsonify
 from flask_cors import CORS
 import pandas as pd
@@ -154,6 +153,7 @@ def gerar_grafico_equipe():
 
         ax.axhline(50, color='gray', linestyle='--', linewidth=1, label='50% (Suporte)')
         ax.axhline(60, color='red', linestyle='--', linewidth=1, label='60% (Dominante)')
+
         ax.set_ylim(0, 100)
         ax.set_ylabel('Pontuação (%)')
         ax.set_title(f"EQUIPE - ARQUÉTIPOS DE LIDERANÇA\nAvaliador: {email_lider} | Data: {data_envio}", fontsize=13)
