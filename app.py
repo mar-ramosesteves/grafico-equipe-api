@@ -157,17 +157,27 @@ def relatorio_equipe():
         if not email or not data:
             raise Exception("Faltam email ou data.")
 
+        # Carrega a planilha com as chaves e tendências
         matriz = pd.read_excel("TABELA_GERAL_ARQUETIPOS_COM_CHAVE.xlsx")
 
         perguntas = [f"Q{str(i).zfill(2)}" for i in range(1, 50)]
+        arquetipos = ["Imperativo", "Consultivo", "Cuidativo", "Resoluto", "Prescritivo", "Formador"]
         linhas = []
 
         for cod in perguntas:
-            subconjunto = matriz[matriz["CHAVE"].str.endswith(cod)]
+            nota = int(dados.get(cod, 0))
+            if nota < 1 or nota > 6:
+                continue
+
+            # Gerar todas as chaves possíveis para essa nota
+            chaves = [f"{arq}{nota}{cod}" for arq in arquetipos]
+            subconjunto = matriz[matriz["CHAVE"].isin(chaves)]
+
             if subconjunto.empty:
                 continue
 
             top2 = subconjunto.sort_values(by="% Tendência", ascending=False).head(2)
+
             arqs = top2["ARQUETIPO"].tolist() if "ARQUETIPO" in top2.columns else [chave[:-len(cod)] for chave in top2["CHAVE"]]
             tendencia = top2["Tendência"].values[0]
             percentual = top2["% Tendência"].values[0]
