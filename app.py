@@ -126,9 +126,11 @@ def gerar_grafico_equipe():
             for arq in arquetipos:
                 chave = f"{arq}{nota}{cod}"
                 match = matriz[matriz["CHAVE"] == chave]
+                print(f"🔑 {chave} → encontrado: {not match.empty}")
                 if not match.empty:
                     pontos = match.iloc[0]["PONTOS_OBTIDOS"]
                     maximo = match.iloc[0]["PONTOS_MAXIMOS"]
+                    print(f"   ▶︎ PONTOS: {pontos} / MÁXIMO: {maximo}")
                     linhas.append((arq, pontos, maximo))
 
         if not linhas:
@@ -139,6 +141,9 @@ def gerar_grafico_equipe():
         resumo["PERCENTUAL"] = (resumo["PONTOS_OBTIDOS"] / resumo["PONTOS_MAXIMOS"]) * 100
         resumo["PERCENTUAL"] = resumo["PERCENTUAL"].round(4)
         resumo = resumo.reindex(arquetipos)
+
+        print("📊 Resultado final (equipe):")
+        print(resumo)
 
         email_lider = dados.get("emailLider", "N/D")
         data_envio = dados.get("data", "N/D")
@@ -172,3 +177,4 @@ def gerar_grafico_equipe():
 @app.route("/")
 def home():
     return "🎯 API de Gráficos de Arquétipos está ativa!"
+
