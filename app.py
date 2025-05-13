@@ -186,3 +186,68 @@ def relatorio_equipe():
     except Exception as e:
         print("❌ Erro no /relatorio-equipe:", str(e))
         return jsonify({"erro": str(e)}), 500
+
+@app.route('/grafico-equipe', methods=['POST'])
+def grafico_equipe():
+    try:
+        dados = request.get_json()
+        if not dados:
+            raise Exception("Nenhum dado recebido.")
+
+        perguntas = [f"Q{str(i).zfill(2)}" for i in range(1, 50)]
+        arquetipos = ["Imperativo", "Consultivo", "Cuidativo", "Resoluto", "Prescritivo", "Formador"]
+        linhas = []
+
+        for cod in perguntas:
+            nota = int(dados.get(cod, 0))
+            if nota < 1 or nota > 6:
+                continue
+
+            for arq in arquetipos:
+                chave = f"{arq}{nota}{cod}"
+                match = matriz[matriz["CHAVE"] == chave]
+                if not match.empty:
+                    pontos = match.iloc[0]["PONTOS_OBTIDOS"]
+                    maximo = match.iloc[0]["PONTOS_MAXIMOS"]
+                    linhas.append((arq, pontos, maximo))
+
+        if not linhas:
+            raise Exception("Nenhuma resposta válida encontrada.")
+
+        df_result = pd.DataFrame(linhas, columns=["ARQUETIPO", "PONTOS_OBTIDOS", "PONTOS_MAXIMOS"])
+        resumo = df_result.groupby("ARQUETIPO").sum()
+        resumo["PERCENTUAL"] = (resumo["PONTOS_OBTIDOS"] / resumo["PONTOS_MAXIMOS"]) * 100
+        resumo["PERCENTUAL"] = resumo["PERCENTUAL"].round(4)
+        resumo = resumo.reindex(arquetipos)
+
+        email_lider = dados.get("emailLider", "N/D")
+        data_envio = dados.get("data", "N/D")
+
+        fig, ax = plt.subplots(figsize=(10, 6))
+        bars = ax.bar(resumo.index, resumo["PERCENTUAL"], color='orange')
+
+        for bar in bars:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width() / 2, height + 1, f'{height:.1f}%', ha='center', va='bottom')
+
+        ax.axhline(50, color='gray', linestyle='--', linewidth=1, label='50% (Suporte)')
+        ax.axhline(60, color='red', linestyle='--', linewidth=1, label='60% (Dominante)')
+
+        ax.set_ylim(0, 100)
+        ax.set_ylabel('Pontuação (%)')
+        ax.set_title(f"EQUIPE - ARQUÉTIPOS DE LIDERANÇA\nLíder Avaliado: {email_lider} | Data: {data_envio}", fontsize=13)
+        ax.legend()
+        plt.xticks(rotation=0)
+
+        buf = io.BytesIO()
+        plt.tight_layout()
+        plt.savefig(buf, format="png")
+        buf.seek(0)
+        plt.close()
+
+        return send_file(buf, mimetype="image/png")
+
+    except Exception as e:
+        print("❌ Erro no /grafico-equipe:", str(e))
+        return jsonify({"erro": str(e)}), 500
+
