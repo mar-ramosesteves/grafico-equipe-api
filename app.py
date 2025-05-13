@@ -9,10 +9,6 @@ app = Flask(__name__)
 CORS(app, resources={r"/*": {"origins": ["*"]}})
 
 matriz = pd.read_excel("TABELA_GERAL_ARQUETIPOS_COM_CHAVE.xlsx")
-print("🔍 Tamanho da matriz:", matriz.shape)
-print("🔍 Primeiras chaves:")
-print(matriz["CHAVE"].head(10).tolist())
-
 
 @app.route("/grafico", methods=["POST"])
 def gerar_grafico():
@@ -30,7 +26,7 @@ def gerar_grafico():
 
         if not dados:
             raise Exception("Nenhum dado recebido.")
-        print("📦 Dados recebidos (após unpack):", dados)
+        print("📦 Dados recebidos (auto):", dados)
 
         perguntas = [f"Q{str(i).zfill(2)}" for i in range(1, 50)]
         arquetipos = ["Imperativo", "Consultivo", "Cuidativo", "Resoluto", "Prescritivo", "Formador"]
@@ -62,7 +58,6 @@ def gerar_grafico():
         resumo = df_result.groupby("ARQUETIPO").sum()
         resumo["PERCENTUAL"] = (resumo["PONTOS_OBTIDOS"] / resumo["PONTOS_MAXIMOS"]) * 100
         resumo["PERCENTUAL"] = resumo["PERCENTUAL"].round(4)
-
         resumo = resumo.reindex(arquetipos)
 
         email_lider = dados.get("emailLider", "N/D")
@@ -76,7 +71,6 @@ def gerar_grafico():
 
         ax.axhline(50, color='gray', linestyle='--', linewidth=1, label='50% (Suporte)')
         ax.axhline(60, color='red', linestyle='--', linewidth=1, label='60% (Dominante)')
-
         ax.set_ylim(0, 100)
         ax.set_ylabel('Pontuação (%)')
         ax.set_title(f"AUTOAVALIAÇÃO - ARQUÉTIPOS DE LIDERANÇA\nRespondente: {email_lider} | Data: {data_envio}", fontsize=13)
@@ -95,6 +89,7 @@ def gerar_grafico():
         print("❌ Erro:", str(e))
         return jsonify({"erro": str(e)}), 500
 
+
 @app.route("/grafico-equipe", methods=["POST"])
 def gerar_grafico_equipe():
     try:
@@ -111,7 +106,6 @@ def gerar_grafico_equipe():
 
         if not dados:
             raise Exception("Nenhum dado recebido.")
-
         print("📦 Dados recebidos (equipe):", dados)
 
         perguntas = [f"Q{str(i).zfill(2)}" for i in range(1, 50)]
@@ -157,7 +151,6 @@ def gerar_grafico_equipe():
 
         ax.axhline(50, color='gray', linestyle='--', linewidth=1, label='50% (Suporte)')
         ax.axhline(60, color='red', linestyle='--', linewidth=1, label='60% (Dominante)')
-
         ax.set_ylim(0, 100)
         ax.set_ylabel('Pontuação (%)')
         ax.set_title(f"EQUIPE - ARQUÉTIPOS DE LIDERANÇA\nAvaliador: {email_lider} | Data: {data_envio}", fontsize=13)
